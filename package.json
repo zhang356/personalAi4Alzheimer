@@ -1,0 +1,41 @@
+{
+  "name": "personalAi4Alzheimer",
+  "version": "1.0.0",
+  "description": "This is a readme file for zhang356",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "start": "webpack serve --open",
+    "predeploy": "npm run build",
+    "deploy": "npm run build && gh-pages -d dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhang356/personalAi4Alzheimer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zhang356/personalAi4Alzheimer/issues"
+  },
+  "homepage": "https://github.com/zhang356/personalAi4Alzheimer",
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "gh-pages": "^5.0.0",
+    "html-webpack-plugin": "^5.5.3",
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-transcribe-streaming": "^3.359.0",
+    "lodash": "^4.17.21",
+    "microphone-stream": "^6.0.1",
+    "node-polyfill-webpack-plugin": "^2.0.1",
+    "openai": "^3.3.0",
+    "process": "^0.11.10"
+  }
+}
