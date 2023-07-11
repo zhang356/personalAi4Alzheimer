@@ -7,17 +7,23 @@
   </head>
 
   <body>
-    <h1> <%= htmlWebpackPlugin.options.myPageHeader %> </h1>
-      <button id="start-button">Start</button>
-      <button id="stop-button">Stop</button>
-      <button id="resume-button">Ask</button>
-      <button id="show-answer">Answer</button>
-
-      <h1> Context </h1>
-      	<p id="text-results"></p>
-      <h1> Question </h1>
+    <h1 class="page-header"> <%= htmlWebpackPlugin.options.myPageHeader %> </h1>
+      <!-- <button id="start-button">Start</button> -->
+      <!-- <button id="stop-button">Stop</button> -->
+      <div class="controls"> 
+        <button id="question-button" class="control-button">Ask</button>
+        <button id="show-answer" class="control-button">Answer</button>
+      </div>
+      <!-- <input id="context-input" type="file" class="form-control" accept="*" /> -->
+      <!-- <h1> Context </h1>
+      	<p id="text-results"></p> -->
+      <div class="question-section">
+        <h1 class="question-header"> Question </h1>
       	<p id="question"></p>
-      <h1> Answer </h1>
+      </div>
+      <div class="answer-section">
+        <h1 class="answer-header"> Answer </h1>
       	<p id="answer"></p>
+      </div>
   </body>
 </html>

@@ -4,13 +4,13 @@ import {
   StartStreamTranscriptionCommand,
 } from "@aws-sdk/client-transcribe-streaming";
 import { Configuration, OpenAIApi } from 'openai';
-
+import './style.scss';
 
 const mic = require('microphone-stream').default;
 const region = "us-west-2";
 const credentials = {
-  "accessKeyId": "AKIAUQEVMB47ZVBXAYGZ",
-  "secretAccessKey": "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",
+  "accessKeyId": "aws",
+  "secretAccessKey": "aws",
 };
 const LanguageCode = "en-US";
 const MeidaEncoding = "pcm";
@@ -31,10 +31,10 @@ const STORAGE_KEY = "almond";
 localStorage.setItem(STORAGE_KEY, "");
 
 const STORAGE_KEY_QUESTION = "almond_question";
-localStorage.setItem(STORAGE_KEY, "");
+localStorage.setItem(STORAGE_KEY_QUESTION, "");
 
 const configuration = new Configuration({
-  apiKey: "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",
+  apiKey: "open ai",
 });
 const openai = new OpenAIApi(configuration);
 const OPENING_WORDS = `You are a helpful assistant to David, who is an Alzheimer patient. You are polite and gentle when he doesn’t remember something, and you’d always respond with a nondeterministic tone, like “I think” or “I believe”.` 
@@ -43,27 +43,42 @@ let CONTEXT_REAL = `here is the conversation happened before: "${localStorage.ge
 const QUESTION = `Now, there's a conversation happening now: David: "That lady who flowered with us on July 2nd, name was... was... starts with letter N I think, or M? What was her name again? She has great taste on flowers." Can you help remind David by responding to him? Let's think step by step. Please start your actual response with "[Actual Response]”`
 let QUESTION_REAL = `Now, there's a conversation happening now: David: "${localStorage.getItem(STORAGE_KEY_QUESTION)}" Can you help remind David by responding to him? Let's think step by step. Please start your actual response with "[Actual Response]”`
 
-document.getElementById("start-button").onclick = function () {
-    console.log("click on start button");
-    // first we get the microphone input from the browser (as a promise)...
+// const inputElement = document.getElementById("context-input");
+// inputElement.addEventListener("change", handleFiles, false);
+// function handleFiles() {
+//   const fileList = this.files; /* now you can work with the file list */
+//   console.log(fileList);
+// }
 
-    window.navigator.mediaDevices.getUserMedia({
-            video: false,
-            audio: true
-        })
-        .then(streamAudioToWebSocket) 
-        .catch(function (error) {
-            console.error(error);
-        });
-};
+// document.getElementById("start-button").onclick = function () {
+//     console.log("click on start button");
+//     // first we get the microphone input from the browser (as a promise)...
 
-document.getElementById('stop-button').onclick = function() {
-  micStream.stop();
-  client.destroy();
-};
+//     window.navigator.mediaDevices.getUserMedia({
+//             video: false,
+//             audio: true
+//         })
+//         .then(streamAudioToWebSocket) 
+//         .catch(function (error) {
+//             console.error(error);
+//         });
+// };
+
+// document.getElementById('stop-button').onclick = function() {
+//   micStream.stop();
+//   client.destroy();
+// };
 
 
 document.getElementById('show-answer').onclick = async function() {
+  micStream.stop();
+  // client.destroy();
+  const question = localStorage.getItem(STORAGE_KEY_QUESTION);
+  const speech = await askRelevanceAi(question);
+  await text2Speech(speech);
+};
+
+let showAnswerOld = async function() {
   micStream.stop();
   client.destroy();
   CONTEXT_REAL = `here is the conversation happened before: "${localStorage.getItem(STORAGE_KEY)}"`
@@ -82,9 +97,10 @@ document.getElementById('show-answer').onclick = async function() {
   const paragraph = document.getElementById("answer").textContent = answer[1];
 };
 
-document.getElementById("resume-button").onclick = function () {
+document.getElementById("question-button").onclick = function () {
     console.log("click on start button");
     // first we get the microphone input from the browser (as a promise)...
+    localStorage.setItem(STORAGE_KEY_QUESTION, "");
 
     window.navigator.mediaDevices.getUserMedia({
             video: false,
@@ -167,6 +183,7 @@ async function handleTextStream(isQuestion) {
           prevId = result.ResultId;
           if (isQuestion) {
             const paragraph = document.getElementById("question");
+            paragraph.style.visibility = "visible";
             textNode.id = prevId;
             paragraph.appendChild(textNode)
           } else {
@@ -193,6 +210,64 @@ async function handleTextStream(isQuestion) {
     }
   }
 }
+
+async function askRelevanceAi(question) {
+  const url = "https://api-bcbe5a.stack.tryrelevance.com/latest/studios/cbf3109c-d8c5-41ad-b630-f5c7f37001ac/trigger_limited";
+  const data = {"params":{"long_text_variable": question},"project":"6f770fda6633-4dee-a99c-f8e72bce8f69"};
+  const response = await fetch(url, {
+    method: "POST", // *GET, POST, PUT, DELETE, etc.
+    mode: "cors", // no-cors, *cors, same-origin
+    cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: "same-origin", // include, *same-origin, omit
+    headers: {
+      "Content-Type": "application/json",
+    },
+      redirect: "follow", // manual, *follow, error
+      referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+      body: JSON.stringify(data), // body data type must match "Content-Type" header
+    });
+    const responseJson = await response.json()
+    return responseJson.output.answer;
+}
+// console.log(await askRelevanceAi());
+
+async function text2Speech(speechText) {
+
+  const url = "https://api.elevenlabs.io/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL?optimize_streaming_latency=0";
+  const data = {
+    "text": speechText,
+    "model_id": "eleven_monolingual_v1",
+    "voice_settings": {
+      "stability": 0,
+      "similarity_boost": 0,
+      "style": 0.5,
+      "use_speaker_boost": false
+    }
+  };
+  const response = await fetch(url, {
+    method: "POST", // *GET, POST, PUT, DELETE, etc.
+    mode: "cors", // no-cors, *cors, same-origin
+    cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: "same-origin", // include, *same-origin, omit
+    headers: {
+      "Content-Type": "application/json",
+      "xi-api-key": "11labs",
+    },
+      redirect: "follow", // manual, *follow, error
+      referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+      body: JSON.stringify(data), // body data type must match "Content-Type" header
+    });
+  const speechBlob = await response.blob(); 
+  const speechUrl = URL.createObjectURL(speechBlob);
+  const speechElement = document.createElement('Audio')
+  speechElement.src = speechUrl;
+  speechElement.play();
+  document.getElementById("answer").textContent = speechText;
+  document.getElementById("answer").style.visibility = "visible";
+}
+
+// window.speech = await text2Speech();
+
 
 // function streamAudioToWebSocket(stream) {
 //   mediaRecorder = new MediaRecorder(stream);

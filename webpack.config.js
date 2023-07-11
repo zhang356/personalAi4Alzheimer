@@ -16,8 +16,8 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      title: 'Personal AI 4 Alzheimer',
-      myPageHeader: 'Almond is continuous listening and memorizing',
+      title: 'Almond AI',
+      myPageHeader: 'Almond.ai',
       template: './src/index.html',
       filename: './index.html'
     }),
@@ -30,5 +30,20 @@ module.exports = {
     fallback: {
       buffer: require.resolve('buffer')
     }
+  },
+  module: {
+    rules: [
+      {
+        test: /\.s[ac]ss$/i,
+        use: [
+          // Creates `style` nodes from JS strings
+          "style-loader",
+          // Translates CSS into CommonJS
+          "css-loader",
+          // Compiles Sass to CSS
+          "sass-loader",
+        ],
+      },
+    ],
   }
 }

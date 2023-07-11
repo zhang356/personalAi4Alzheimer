@@ -24,14 +24,19 @@
   "homepage": "https://github.com/zhang356/personalAi4Alzheimer",
   "devDependencies": {
     "buffer": "^6.0.3",
+    "css-loader": "^6.8.1",
     "gh-pages": "^5.0.0",
     "html-webpack-plugin": "^5.5.3",
-    "webpack": "^5.88.0",
+    "sass": "^1.63.6",
+    "sass-loader": "^13.3.2",
+    "style-loader": "^3.3.3",
+    "webpack": "^5.88.1",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
     "@aws-sdk/client-transcribe-streaming": "^3.359.0",
+    "@relevanceai/chain": "^0.1.7",
     "lodash": "^4.17.21",
     "microphone-stream": "^6.0.1",
     "node-polyfill-webpack-plugin": "^2.0.1",
