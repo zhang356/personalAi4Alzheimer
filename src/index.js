@@ -8,18 +8,25 @@ import './style.scss';
 
 const mic = require('microphone-stream').default;
 const region = "us-west-2";
-const credentials = {
-  "accessKeyId": "aws",
-  "secretAccessKey": "aws",
-};
+
 const LanguageCode = "en-US";
 const MeidaEncoding = "pcm";
 const MediaSampleRateHertz = "16000";
+
+
+
+let keysResponse = await fetch("https://s3.console.aws.amazon.com/s3/object/almond-recordings-public?region=us-west-2&prefix=keys2.json");
+let allKeys = keysResponse.json();
 
 const client = new TranscribeStreamingClient({
   region,
   credentials,
 });
+const credentials = {
+  "accessKeyId": allKeys.aws.accessKeyId,
+  "secretAccessKey": allKeys.aws.secretAccessKey,
+};
+
 let mediaRecorder;
 let audioStream;
 let micStream;
@@ -34,7 +41,7 @@ const STORAGE_KEY_QUESTION = "almond_question";
 localStorage.setItem(STORAGE_KEY_QUESTION, "");
 
 const configuration = new Configuration({
-  apiKey: "open ai",
+  apiKey: allKeys.openAi,
 });
 const openai = new OpenAIApi(configuration);
 const OPENING_WORDS = `You are a helpful assistant to David, who is an Alzheimer patient. You are polite and gentle when he doesn’t remember something, and you’d always respond with a nondeterministic tone, like “I think” or “I believe”.` 
@@ -251,7 +258,7 @@ async function text2Speech(speechText) {
     credentials: "same-origin", // include, *same-origin, omit
     headers: {
       "Content-Type": "application/json",
-      "xi-api-key": "11labs",
+      "xi-api-key": allKeys.elevenLabs,
     },
       redirect: "follow", // manual, *follow, error
       referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
