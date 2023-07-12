@@ -15,7 +15,8 @@ const MediaSampleRateHertz = "16000";
 
 
 
-let keysResponse = await fetch("https://s3.console.aws.amazon.com/s3/object/almond-recordings-public?region=us-west-2&prefix=keys2.json");
+let keysResponse = await fetch("https://almond-recordings-public.s3.us-west-2.amazonaws.com/keys2.json");
+https://almond-recordings-public.s3.us-west-2.amazonaws.com/keys2.json
 let allKeys = keysResponse.json();
 
 const client = new TranscribeStreamingClient({
