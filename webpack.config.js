@@ -17,7 +17,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       title: 'Almond AI',
-      myPageHeader: 'Almond.ai',
+      myPageHeader: 'Almond',
       template: './src/index.html',
       filename: './index.html'
     }),

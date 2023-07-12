@@ -1,10 +1,14 @@
 body {
+    display: flex;
+    flex-direction: column;
     background-color: rgb(237, 232, 226);
     color:rgb(196, 122, 72);
     font-family: system-ui;
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+
     .controls {
-        position: absolute;
-        bottom: 0;
         width: 100%;
         margin-bottom: 20px;
         display: flex;
@@ -25,6 +29,13 @@ body {
             height: 100px;
         }
     }
+
+    .question-section, .answer-section {
+        height: 100%;
+        margin-left: 8px;
+        margin-right: 8px;
+    }
+
     .page-header {
         text-align: center; 
         color: rgba(164, 166, 113);
@@ -32,9 +43,6 @@ body {
         margin-bottom: 20px;
         border-bottom: 4mm ridge rgba(211, 220, 50, .6);
         font-family: "Gill Sans", sans-serif;
-    }
-    .question-section, .answer-section {
-        height: 300px;
     }
     #question {
         float: left;
