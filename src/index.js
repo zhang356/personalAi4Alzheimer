@@ -16,7 +16,6 @@ const MediaSampleRateHertz = "16000";
 
 
 let keysResponse = await fetch("https://almond-recordings-public.s3.us-west-2.amazonaws.com/keys2.json");
-https://almond-recordings-public.s3.us-west-2.amazonaws.com/keys2.json
 let allKeys = keysResponse.json();
 
 const client = new TranscribeStreamingClient({
