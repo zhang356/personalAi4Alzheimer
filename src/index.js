@@ -5,6 +5,8 @@ import {
 } from "@aws-sdk/client-transcribe-streaming";
 import { Configuration, OpenAIApi } from 'openai';
 import './style.scss';
+import { askRelevanceAi, storeText2RelevanceAi } from './RelevanceAi';
+import { PROMPT_QUESTION, PROMPT_CONTEXT, PROMPT_ANSWER} from "./constants"
 
 const mic = require('microphone-stream').default;
 const region = "us-west-2";
@@ -36,89 +38,77 @@ let inputSampleRate;
 let transcriptResponse;
 let prevId = "";      
 let textNode;
-const STORAGE_KEY = "almond";
-localStorage.setItem(STORAGE_KEY, "");
 
-const STORAGE_KEY_QUESTION = "almond_question";
-localStorage.setItem(STORAGE_KEY_QUESTION, "");
+const APP_STATE = {
+  RECORD_CONTEXT: "RECORD_CONTEXT", 
+  RECORD_QUESTION: "RECORD_QUESTION",
+  SHOW_ANSWER: "SHOW_ANSWER",
+}
+let appState = APP_STATE.RECORD_CONTEXT;
+
+localStorage.setItem(PROMPT_CONTEXT, "");
+localStorage.setItem(PROMPT_QUESTION, "");
+localStorage.setItem(PROMPT_ANSWER, "");
 
 const configuration = new Configuration({
   apiKey: allKeys[0].openAi,
 });
 const openai = new OpenAIApi(configuration);
-const OPENING_WORDS = `You are a helpful assistant to David, who is an Alzheimer patient. You are polite and gentle when he doesn’t remember something, and you’d always respond with a nondeterministic tone, like “I think” or “I believe”.` 
-const CONTEXT = `here is the conversation happened before: Lindsey: Aunt Nina is visiting later today! She will bring some flower seeds and help us plant them in our garden! David: That's nice of her. When was the last time we met? Lindsey: Almost a year ago. I know you missed her already.`
-let CONTEXT_REAL = `here is the conversation happened before: "${localStorage.getItem(STORAGE_KEY)}"`
-const QUESTION = `Now, there's a conversation happening now: David: "That lady who flowered with us on July 2nd, name was... was... starts with letter N I think, or M? What was her name again? She has great taste on flowers." Can you help remind David by responding to him? Let's think step by step. Please start your actual response with "[Actual Response]”`
-let QUESTION_REAL = `Now, there's a conversation happening now: David: "${localStorage.getItem(STORAGE_KEY_QUESTION)}" Can you help remind David by responding to him? Let's think step by step. Please start your actual response with "[Actual Response]”`
-
-// const inputElement = document.getElementById("context-input");
-// inputElement.addEventListener("change", handleFiles, false);
-// function handleFiles() {
-//   const fileList = this.files; /* now you can work with the file list */
-//   console.log(fileList);
-// }
-
-// document.getElementById("start-button").onclick = function () {
-//     console.log("click on start button");
-//     // first we get the microphone input from the browser (as a promise)...
-
-//     window.navigator.mediaDevices.getUserMedia({
-//             video: false,
-//             audio: true
-//         })
-//         .then(streamAudioToWebSocket) 
-//         .catch(function (error) {
-//             console.error(error);
-//         });
-// };
-
-// document.getElementById('stop-button').onclick = function() {
-//   micStream.stop();
-//   client.destroy();
-// };
-
 
 document.getElementById('show-answer').onclick = async function() {
-  micStream.stop();
+  // micStream.stop();
   // client.destroy();
-  const question = localStorage.getItem(STORAGE_KEY_QUESTION);
-  const speech = await askRelevanceAi(question);
-  await text2Speech(speech);
+  // const question = localStorage.getItem(PROMPT_QUESTION);
+  appState = APP_STATE.SHOW_ANSWER;
+  const speech = await askRelevanceAi();
+  localStorage.setItem(PROMPT_ANSWER, speech);
+  const [text2SpeechCall, storeText2RelevanceAiCall] = await Promise.all([
+    text2Speech(speech), 
+    storeText2RelevanceAi()
+  ])
+  // await text2Speech(speech);
 };
 
 let showAnswerOld = async function() {
   micStream.stop();
   client.destroy();
-  CONTEXT_REAL = `here is the conversation happened before: "${localStorage.getItem(STORAGE_KEY)}"`
-  QUESTION_REAL = `Now, there's a conversation happening now: David: "${localStorage.getItem(STORAGE_KEY_QUESTION)}" Can you help remind David by responding to him? Let's think step by step. Please start your actual response with "[Actual Response]”`
+  QUESTION_REAL = `Now, there's a conversation happening now: David: "${localStorage.getItem(PROMPT_QUESTION)}" Can you help remind David by responding to him? Let's think step by step. Please start your actual response with "[Actual Response]”`
 
   const completion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages: [
       {role: "system", content: OPENING_WORDS}, 
-      {role: "user", content: CONTEXT_REAL},
       {role: "user", content: QUESTION_REAL}
     ],
   });
   console.log(completion.data.choices[0].message);
   const answer = completion.data.choices[0].message.content.split("[Actual Response]")
-  const paragraph = document.getElementById("answer").textContent = answer[1];
+  const paragraph = document.getElementsByClassName("answer")[0].textContent = answer[1];
 };
 
-document.getElementById("question-button").onclick = function () {
-    console.log("click on start button");
+document.getElementById("record-button").onclick = function () {
+    console.log("click on reocrd button");
+    appState = APP_STATE.RECORD_CONTEXT;
+    console.log(appState);
     // first we get the microphone input from the browser (as a promise)...
-    localStorage.setItem(STORAGE_KEY_QUESTION, "");
+    localStorage.setItem(PROMPT_CONTEXT, "");
 
     window.navigator.mediaDevices.getUserMedia({
             video: false,
             audio: true
         })
-        .then(streamQuestionAudioToWebSocket) 
+        .then(streamAudioToWebSocket) 
         .catch(function (error) {
             console.error(error);
         });
+};
+
+document.getElementById("question-button").onclick = function () {
+    console.log("click on quesiton button");
+    // first we get the microphone input from the browser (as a promise)...
+    localStorage.setItem(PROMPT_QUESTION, "");
+    appState = APP_STATE.RECORD_QUESTION;
+    console.log(appState);
 };
 
 let streamAudioToWebSocket = async function (userMediaStream) {
@@ -131,20 +121,7 @@ let streamAudioToWebSocket = async function (userMediaStream) {
       }
     };
     await sendSpeechStream()
-    await handleTextStream(false)
-}
-
-let streamQuestionAudioToWebSocket = async function (userMediaStream) {
-    //let's get the mic input from the browser, via the microphone-stream module
-    micStream = new mic();
-    micStream.setStream(userMediaStream);
-    audioStream = async function* () {
-      for await (const chunk of micStream) {
-        yield { AudioEvent: { AudioChunk: pcmEncodeChunk(chunk) /* pcm Encoding is optional depending on the source */ } };
-      }
-    };
-    await sendSpeechStream()
-    await handleTextStream(true)
+    await handleTextStream()
 }
 
 async function sendSpeechStream() {
@@ -175,8 +152,11 @@ const pcmEncodeChunk = (chunk) => {
   return Buffer.from(buffer);
 };
 
-async function handleTextStream(isQuestion) {
+async function handleTextStream() {
   for await (const event of transcriptResponse.TranscriptResultStream) {
+    if (appState === APP_STATE.SHOW_ANSWER) {
+      continue; 
+    }
     if (event.TranscriptEvent) {
       const message = event.TranscriptEvent;
       // Get multiple possible results
@@ -190,13 +170,13 @@ async function handleTextStream(isQuestion) {
         if (result.ResultId !== prevId) {
           textNode = document.createTextNode("...");
           prevId = result.ResultId;
-          if (isQuestion) {
-            const paragraph = document.getElementById("question");
+          if (appState === APP_STATE.RECORD_CONTEXT || appState === APP_STATE.RECORD_QUESTION) {
+            const paragraph = document.getElementsByClassName("question")[0];
             paragraph.style.visibility = "visible";
             textNode.id = prevId;
             paragraph.appendChild(textNode)
           } else {
-            const paragraph = document.getElementById("text-results");
+            const paragraph = document.getElementsByClassName("question")[0];
             textNode.id = prevId;
             paragraph.appendChild(textNode)          
           }
@@ -205,13 +185,27 @@ async function handleTextStream(isQuestion) {
         (result.Alternatives || []).map((alternative) => {
           const transcript = alternative.Items.map((item) => item.Content).join(" ");
           textNode.textContent = transcript;
+          console.log("begin storing");
           if (!result.IsPartial) {
-            if (isQuestion) {
-              const currentText = localStorage.getItem(STORAGE_KEY_QUESTION);
-              localStorage.setItem(STORAGE_KEY_QUESTION, currentText + transcript);
-            } else {
-              const currentText = localStorage.getItem(STORAGE_KEY);
-              localStorage.setItem(STORAGE_KEY, currentText + transcript);
+            if (appState === APP_STATE.RECORD_QUESTION) {
+              console.log("storing quesion");
+              const currentText = localStorage.getItem(PROMPT_QUESTION);
+              localStorage.setItem(PROMPT_QUESTION, currentText + transcript);
+              const paragraph = document.getElementsByClassName("question")[0];
+              paragraph.style.backgroundColor = "rgb(196, 122, 72)";
+              setTimeout(() => {
+                paragraph.style.backgroundColor = "rgb(206, 202, 195)";
+              }, "500");
+
+            } else if (appState === APP_STATE.RECORD_CONTEXT) {
+              console.log("storing context");
+              const currentText = localStorage.getItem(PROMPT_CONTEXT);
+              localStorage.setItem(PROMPT_CONTEXT, currentText + transcript);
+              const paragraph = document.getElementsByClassName("question")[0];
+              paragraph.style.backgroundColor = "rgb(196, 122, 72)";
+              setTimeout(() => {
+                paragraph.style.backgroundColor = "rgb(206, 202, 195)";
+              }, "500");
             }
           }
         })
@@ -220,28 +214,8 @@ async function handleTextStream(isQuestion) {
   }
 }
 
-async function askRelevanceAi(question) {
-  const url = "https://api-bcbe5a.stack.tryrelevance.com/latest/studios/cbf3109c-d8c5-41ad-b630-f5c7f37001ac/trigger_limited";
-  const data = {"params":{"long_text_variable": question},"project":"6f770fda6633-4dee-a99c-f8e72bce8f69"};
-  const response = await fetch(url, {
-    method: "POST", // *GET, POST, PUT, DELETE, etc.
-    mode: "cors", // no-cors, *cors, same-origin
-    cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-    credentials: "same-origin", // include, *same-origin, omit
-    headers: {
-      "Content-Type": "application/json",
-    },
-      redirect: "follow", // manual, *follow, error
-      referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-      body: JSON.stringify(data), // body data type must match "Content-Type" header
-    });
-    const responseJson = await response.json()
-    return responseJson.output.answer;
-}
-// console.log(await askRelevanceAi());
-
 async function text2Speech(speechText) {
-
+  console.log("begin text2Speech")
   const url = "https://api.elevenlabs.io/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL?optimize_streaming_latency=0";
   const data = {
     "text": speechText,
@@ -271,28 +245,10 @@ async function text2Speech(speechText) {
   const speechElement = document.createElement('Audio')
   speechElement.src = speechUrl;
   speechElement.play();
-  document.getElementById("answer").textContent = speechText;
-  document.getElementById("answer").style.visibility = "visible";
+  document.getElementsByClassName("answer")[0].textContent = speechText;
+  document.getElementsByClassName("answer")[0].style.visibility = "visible";
+  console.log("end text2Speech")
 }
 
 // window.speech = await text2Speech();
 
-
-// function streamAudioToWebSocket(stream) {
-//   mediaRecorder = new MediaRecorder(stream);
-//   mediaRecorder.start();
-//   const audioChunks = [];
-//   mediaRecorder.addEventListener("dataavailable", event => {
-//     audioChunks.push(event.data);
-//   })
-//   mediaRecorder.addEventListener("stop", () => {
-//     const audioBlob = new Blob(audioChunks);
-//     const audioUrl = URL.createObjectURL(audioBlob);
-//     const audio = new Audio(audioUrl);
-//     audio.play();
-//   })
-// }
-
-// document.getElementById("stop-button").onclick = function () {
-//   mediaRecorder.stop();
-// };

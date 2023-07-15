@@ -26,6 +26,7 @@ body {
             border-radius: 50%;
             width: 100px;
             height: 100px;
+            cursor: pointer;
         }
     }
 
@@ -43,7 +44,7 @@ body {
         border-bottom: 4mm ridge rgba(211, 220, 50, .6);
         font-family: "Gill Sans", sans-serif;
     }
-    #question {
+    .question {
         float: left;
         background-color: rgb(206, 202, 195);
         color: black;
@@ -54,7 +55,7 @@ body {
         visibility: hidden;
     }
 
-    #answer {
+    .answer {
         float: right;
         background-color: rgb(206, 202, 195);
         color: black;
