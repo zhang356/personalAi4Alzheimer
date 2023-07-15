@@ -29,7 +29,7 @@ async function storeText2RelevanceAi() {
   const question = localStorage.getItem(PROMPT_QUESTION);
   const context = localStorage.getItem(PROMPT_CONTEXT);
   const answer = localStorage.getItem(PROMPT_ANSWER);
-  const longTermMemeory = question + context + answer;
+  const longTermMemeory = context + question + answer;
   console.log(`Text to store in longterm memory: ${longTermMemeory}`);
   const data = {"params":{"long_text_variable": longTermMemeory },"project":"6f770fda6633-4dee-a99c-f8e72bce8f69"};
   const response = await fetch(url, {

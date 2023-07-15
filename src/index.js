@@ -170,17 +170,17 @@ async function handleTextStream() {
         if (result.ResultId !== prevId) {
           textNode = document.createTextNode("...");
           prevId = result.ResultId;
-          if (appState === APP_STATE.RECORD_CONTEXT || appState === APP_STATE.RECORD_QUESTION) {
+          if (appState === APP_STATE.RECORD_CONTEXT) {
+            const paragraph = document.getElementsByClassName("context-section")[0];
+            textNode.id = prevId;
+            paragraph.appendChild(textNode)           
+          } else if (appState === APP_STATE.RECORD_QUESTION) {
+            const section = document.getElementsByClassName("question-section")[0];
+            section.style.visibility = "visible";
             const paragraph = document.getElementsByClassName("question")[0];
-            paragraph.style.visibility = "visible";
             textNode.id = prevId;
             paragraph.appendChild(textNode)
-          } else {
-            const paragraph = document.getElementsByClassName("question")[0];
-            textNode.id = prevId;
-            paragraph.appendChild(textNode)          
           }
-
         }
         (result.Alternatives || []).map((alternative) => {
           const transcript = alternative.Items.map((item) => item.Content).join(" ");
@@ -196,15 +196,14 @@ async function handleTextStream() {
               setTimeout(() => {
                 paragraph.style.backgroundColor = "rgb(206, 202, 195)";
               }, "500");
-
             } else if (appState === APP_STATE.RECORD_CONTEXT) {
               console.log("storing context");
               const currentText = localStorage.getItem(PROMPT_CONTEXT);
               localStorage.setItem(PROMPT_CONTEXT, currentText + transcript);
-              const paragraph = document.getElementsByClassName("question")[0];
+              const paragraph = document.getElementsByClassName("context-section")[0];
               paragraph.style.backgroundColor = "rgb(196, 122, 72)";
               setTimeout(() => {
-                paragraph.style.backgroundColor = "rgb(206, 202, 195)";
+                paragraph.style.backgroundColor = "rgb(237, 232, 226)"; // this sets the color back to main body background
               }, "500");
             }
           }
@@ -246,7 +245,7 @@ async function text2Speech(speechText) {
   speechElement.src = speechUrl;
   speechElement.play();
   document.getElementsByClassName("answer")[0].textContent = speechText;
-  document.getElementsByClassName("answer")[0].style.visibility = "visible";
+  document.getElementsByClassName("answer-section")[0].style.visibility = "visible";
   console.log("end text2Speech")
 }
 

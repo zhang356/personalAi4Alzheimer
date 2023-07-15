@@ -34,6 +34,8 @@ body {
         height: 100%;
         margin-left: 8px;
         margin-right: 8px;
+        visibility: hidden;
+        transition: visibility 0.3s
     }
 
     .page-header {
@@ -43,6 +45,14 @@ body {
         margin-bottom: 20px;
         border-bottom: 4mm ridge rgba(211, 220, 50, .6);
         font-family: "Gill Sans", sans-serif;
+
+        #record-button {
+          color: rgba(164, 166, 113);
+          font-family: "Gill Sans", sans-serif;   
+          font-size: inherit;    
+          border: none;
+          border-radius: 10px;
+        }
     }
     .question {
         float: left;
@@ -52,7 +62,6 @@ body {
         border-radius: 5px;
         padding: 10px;
         margin-right: 100px;
-        visibility: hidden;
     }
 
     .answer {
@@ -63,7 +72,6 @@ body {
         border-radius: 5px;
         padding: 10px;
         margin-left: 100px;
-        visibility: hidden;
     }
 
     .question-header {
