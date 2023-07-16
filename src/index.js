@@ -57,8 +57,8 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 document.getElementById('show-answer').onclick = async function() {
-  // micStream.stop();
-  // client.destroy();
+  micStream.stop();
+  client.destroy();
   const introElement = document.createElement('Audio');
   introElement.src = "https://almond-recordings-public.s3.us-west-2.amazonaws.com/letmethink.m4a";
   introElement.play();
@@ -97,8 +97,10 @@ document.getElementById("record-button").onclick = function () {
     console.log(appState);
     // first we get the microphone input from the browser (as a promise)...
     localStorage.setItem(PROMPT_CONTEXT, "");
-
-    window.navigator.mediaDevices.getUserMedia({
+    if (micStream) {
+      reset()
+    } else {
+        window.navigator.mediaDevices.getUserMedia({
             video: false,
             audio: true
         })
@@ -106,6 +108,7 @@ document.getElementById("record-button").onclick = function () {
         .catch(function (error) {
             console.error(error);
         });
+    }
 };
 
 document.getElementById("question-button").onclick = function () {
@@ -252,6 +255,19 @@ async function text2Speech(speechText) {
   document.getElementsByClassName("answer")[0].textContent += speechText;
   // document.getElementsByClassName("answer-section")[0].style.visibility = "visible";
   console.log("end text2Speech")
+}
+
+function reset() {
+  appState = APP_STATE.RECORD_CONTEXT;
+  localStorage.setItem(PROMPT_CONTEXT, "");
+  localStorage.setItem(PROMPT_QUESTION, "");
+  localStorage.setItem(PROMPT_ANSWER, "");
+  document.getElementsByClassName("question")[0].textContent = ""  
+  document.getElementsByClassName("answer")[0].textContent = ""  
+  document.getElementsByClassName("context-section")[0].textContent = ""  
+
+  document.getElementsByClassName("answer-section")[0].style.visibility = "hidden";
+  document.getElementsByClassName("question-section")[0].style.visibility = "hidden";
 }
 
 // window.speech = await text2Speech();
