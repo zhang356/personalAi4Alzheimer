@@ -58,7 +58,10 @@ const openai = new OpenAIApi(configuration);
 document.getElementById('show-answer').onclick = async function() {
   // micStream.stop();
   // client.destroy();
-  // const question = localStorage.getItem(PROMPT_QUESTION);
+  const introElement = document.createElement('Audio');
+  introElement.src = "https://almond-recordings-public.s3.us-west-2.amazonaws.com/letmethink.m4a";
+  introElement.play()
+
   appState = APP_STATE.SHOW_ANSWER;
   const speech = await askRelevanceAi();
   localStorage.setItem(PROMPT_ANSWER, speech);
@@ -66,7 +69,6 @@ document.getElementById('show-answer').onclick = async function() {
     text2Speech(speech), 
     storeText2RelevanceAi()
   ])
-  // await text2Speech(speech);
 };
 
 let showAnswerOld = async function() {
