@@ -14,6 +14,7 @@ const region = "us-west-2";
 const LanguageCode = "en-US";
 const MeidaEncoding = "pcm";
 const MediaSampleRateHertz = "16000";
+const INTRO_TEXT = "Hey Lindsey, I’m Almond, David’s new friend. Hmm… let me think…";
 
 
 
@@ -60,7 +61,9 @@ document.getElementById('show-answer').onclick = async function() {
   // client.destroy();
   const introElement = document.createElement('Audio');
   introElement.src = "https://almond-recordings-public.s3.us-west-2.amazonaws.com/letmethink.m4a";
-  introElement.play()
+  introElement.play();
+  document.getElementsByClassName("answer-section")[0].style.visibility = "visible";
+  document.getElementsByClassName("answer")[0].textContent = INTRO_TEXT;
 
   appState = APP_STATE.SHOW_ANSWER;
   const speech = await askRelevanceAi();
@@ -246,8 +249,8 @@ async function text2Speech(speechText) {
   const speechElement = document.createElement('Audio')
   speechElement.src = speechUrl;
   speechElement.play();
-  document.getElementsByClassName("answer")[0].textContent = speechText;
-  document.getElementsByClassName("answer-section")[0].style.visibility = "visible";
+  document.getElementsByClassName("answer")[0].textContent += speechText;
+  // document.getElementsByClassName("answer-section")[0].style.visibility = "visible";
   console.log("end text2Speech")
 }
 
