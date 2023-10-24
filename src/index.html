@@ -7,24 +7,29 @@
   </head>
 
   <body>
-    <h1 class="page-header"> 
-      <button id="record-button">
-      <%= htmlWebpackPlugin.options.myPageHeader %>
-      </button>
-    </h1>
-      <div class="context-section">
+      <div class="call-details">
+        <textarea id="data-json" rows="50" cols="80">
+          {
+            "phone_number": "8476121553",
+            "task": "your name is Alex. You know the user from Lindsey, who volunteers at the senior center that the user goes to. Your task is to greet the user and follow up on the previous call. Last time when you called the user, he showed interest in physics, specifically special relativity and time dilation. Be concise. Don’t speak for longer than 3 sentences. Strive for conversational depth and width. Always end your statements with a follow-up question to either deepen the current topic or to bring up a new topic. Avoid apologies.",
+            "voice_id": 0,
+            "request_data": {
+            "user_name": "user's name is Dorian",
+            "common_friend": "Your common friend with Dorian is Lindsey, who volunteers at the senior center that Dorian goes to.",
+            "user_interests": "you heard from Lindsey about Dorian’s coloring works, and he’s proud of his daughter, and granddaughter and he enjoys celebrating Halloween with them.",
+            "last_call": "Last time when you called Dorian, there were some connectivity issues. Dorian showed interest in physics, specifically special relativity and time dilation."
+            },
+            "reduce_latency": true,
+            "amd": false,
+            "wait_for_greeting": true,
+            "webhook": ""
+          }
+        </textarea>
       </div>
-      <div class="question-section">
-        <h1 class="question-header"> Question </h1>
-      	<p class="question"></p>
-      </div>
-      <div class="answer-section">
-        <h1 class="answer-header"> Answer </h1>
-      	<p class="answer"></p>
-      </div>
-      <div class="controls"> 
-        <button id="question-button" class="control-button">Ask</button>
-        <button id="show-answer" class="control-button">Answer</button>
+      <button id="call-button">Call</button>
+      <div class="output">
+        <pre id="transcript"></pre>
+
       </div>
   </body>
 </html>
